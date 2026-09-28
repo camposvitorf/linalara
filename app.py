@@ -1,5 +1,7 @@
+import base64
 import json
 import os
+import zlib
 import pandas as pd
 import requests
 import streamlit as st
@@ -529,6 +531,86 @@ def render_products_page(role: str, is_admin: bool) -> None:
 # -----------------------------------------------------------------------------
 # Página 2: Guia de Enxoval (final.txt) e Tabela Consolidada (final.csv / final.json)
 # -----------------------------------------------------------------------------
+
+# -----------------------------------------------------------------------------
+# Base de Dados do Guia de Enxoval (Fallback Embutido de Alta Disponibilidade)
+# -----------------------------------------------------------------------------
+# Dados do Guia de Enxoval e dos 79 itens comprimidos como fallback de segurança
+EMBEDDED_TXT_B64 = "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"
+EMBEDDED_JSON_B64 = "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"
+
+
+def get_embedded_final_txt() -> str:
+    """Retorna o texto de final.txt a partir dos dados comprimidos embutidos."""
+    try:
+        return zlib.decompress(base64.b64decode(EMBEDDED_TXT_B64)).decode("utf-8")
+    except Exception:
+        return "Guia Consolidado de Enxoval das Gêmeas Lina & Lara."
+
+
+def get_embedded_enxoval_df() -> pd.DataFrame:
+    """Retorna o DataFrame dos 79 itens a partir dos dados comprimidos embutidos."""
+    try:
+        raw_json = zlib.decompress(base64.b64decode(EMBEDDED_JSON_B64)).decode("utf-8")
+        return pd.DataFrame(json.loads(raw_json))
+    except Exception:
+        return pd.DataFrame()
+
+
+def load_enxoval_guide_text() -> str:
+    """Carrega o texto do guia (final.txt) de disco ou usa o fallback embutido."""
+    txt_path = get_enxoval_file_path("final.txt")
+    if txt_path and os.path.exists(txt_path):
+        try:
+            with open(txt_path, "r", encoding="utf-8", errors="replace") as f:
+                return f.read()
+        except Exception:
+            pass
+
+    for root, dirs, files in os.walk(CURRENT_DIR):
+        if "final.txt" in files:
+            try:
+                with open(os.path.join(root, "final.txt"), "r", encoding="utf-8", errors="replace") as f:
+                    return f.read()
+            except Exception:
+                pass
+
+    return get_embedded_final_txt()
+
+
+def load_enxoval_dataframe() -> pd.DataFrame:
+    """Carrega o DataFrame dos 79 itens de disco ou usa o fallback embutido."""
+    csv_path = get_enxoval_file_path("final.csv")
+    if csv_path and os.path.exists(csv_path):
+        try:
+            return pd.read_csv(csv_path, sep=";", encoding="utf-8-sig")
+        except Exception:
+            pass
+
+    json_path = get_enxoval_file_path("final.json")
+    if json_path and os.path.exists(json_path):
+        try:
+            with open(json_path, "r", encoding="utf-8") as f:
+                return pd.DataFrame(json.load(f))
+        except Exception:
+            pass
+
+    for root, dirs, files in os.walk(CURRENT_DIR):
+        if "final.csv" in files:
+            try:
+                return pd.read_csv(os.path.join(root, "final.csv"), sep=";", encoding="utf-8-sig")
+            except Exception:
+                pass
+        if "final.json" in files:
+            try:
+                with open(os.path.join(root, "final.json"), "r", encoding="utf-8") as f:
+                    return pd.DataFrame(json.load(f))
+            except Exception:
+                pass
+
+    return get_embedded_enxoval_df()
+
+
 def render_enxoval_guide_page() -> None:
     """Renderiza a página com o conteúdo de final.txt e a tabela com final.csv / final.json."""
     # --- CABEÇALHO DA PÁGINA COM FOTO ---
@@ -563,6 +645,10 @@ def render_enxoval_guide_page() -> None:
 
     st.markdown("<hr style='margin-top: 1rem; margin-bottom: 1.5rem; border: none; border-top: 1px solid #f2c2d4;'>", unsafe_allow_html=True)
 
+    # Carrega dados com fallback seguro (embutido ou disco)
+    txt_content = load_enxoval_guide_text()
+    df = load_enxoval_dataframe()
+
     # Barra superior com atalho e botões de download
     col_nav, col_d1, col_d2, col_d3 = st.columns([1.8, 1, 1, 1], vertical_alignment="center")
     with col_nav:
@@ -570,62 +656,46 @@ def render_enxoval_guide_page() -> None:
             st.session_state.current_page = "🛍️ Produtos & Sugestões"
             st.rerun()
 
-    txt_path = get_enxoval_file_path("final.txt")
-    csv_path = get_enxoval_file_path("final.csv")
-    json_path = get_enxoval_file_path("final.json")
-
     with col_d1:
-        if os.path.exists(txt_path):
-            with open(txt_path, "r", encoding="utf-8", errors="replace") as f:
-                st.download_button(
-                    label="📥 Baixar final.txt",
-                    data=f.read(),
-                    file_name="enxoval_gemeas_final.txt",
-                    mime="text/plain",
-                    width="stretch",
-                )
+        st.download_button(
+            label="📥 Baixar final.txt",
+            data=txt_content,
+            file_name="enxoval_gemeas_final.txt",
+            mime="text/plain",
+            width="stretch",
+        )
 
     with col_d2:
-        if os.path.exists(csv_path):
-            with open(csv_path, "rb") as f:
-                st.download_button(
-                    label="📥 Baixar final.csv",
-                    data=f.read(),
-                    file_name="enxoval_gemeas_final.csv",
-                    mime="text/csv",
-                    width="stretch",
-                )
+        st.download_button(
+            label="📥 Baixar final.csv",
+            data=df.to_csv(sep=";", index=False, encoding="utf-8-sig") if not df.empty else "",
+            file_name="enxoval_gemeas_final.csv",
+            mime="text/csv",
+            width="stretch",
+        )
 
     with col_d3:
-        if os.path.exists(json_path):
-            with open(json_path, "r", encoding="utf-8", errors="replace") as f:
-                st.download_button(
-                    label="📥 Baixar final.json",
-                    data=f.read(),
-                    file_name="enxoval_gemeas_final.json",
-                    mime="application/json",
-                    width="stretch",
-                )
+        st.download_button(
+            label="📥 Baixar final.json",
+            data=df.to_json(orient="records", force_ascii=False, indent=2) if not df.empty else "[]",
+            file_name="enxoval_gemeas_final.json",
+            mime="application/json",
+            width="stretch",
+        )
 
     # -------------------------------------------------------------------------
     # PARTE 1: CONTEÚDO DO final.txt (em expander)
     # -------------------------------------------------------------------------
-    if os.path.exists(txt_path):
-        with open(txt_path, "r", encoding="utf-8", errors="replace") as f:
-            txt_content = f.read()
-
-        with st.expander("📜 Conteúdo Completo do Guia Prático (`final.txt`)", expanded=False):
-            st.caption("Texto consolidado com regras de ouro, quantidades recomendadas por fase, diretrizes pediátricas e mala da maternidade.")
-            st.markdown(
-                f"""
-                <div style="background-color: #fff9fb; padding: 1.2rem; border-radius: 8px; border: 1px solid #ffd8e4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2c3e50;">
-                <pre style="white-space: pre-wrap; font-family: inherit; font-size: 0.95rem; margin: 0;">{txt_content}</pre>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-    else:
-        st.warning(f"Arquivo final.txt não encontrado ({txt_path}).")
+    with st.expander("📜 Conteúdo Completo do Guia Prático (`final.txt`)", expanded=False):
+        st.caption("Texto consolidado com regras de ouro, quantidades recomendadas por fase, diretrizes pediátricas e mala da maternidade.")
+        st.markdown(
+            f"""
+            <div style="background-color: #fff9fb; padding: 1.2rem; border-radius: 8px; border: 1px solid #ffd8e4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2c3e50;">
+            <pre style="white-space: pre-wrap; font-family: inherit; font-size: 0.95rem; margin: 0;">{txt_content}</pre>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
     st.markdown("---")
 
@@ -638,20 +708,20 @@ def render_enxoval_guide_page() -> None:
         "Filtre por categoria ou prioridade e busque por qualquer termo."
     )
 
-    if os.path.exists(csv_path):
-        df = pd.read_csv(csv_path, sep=";", encoding="utf-8-sig")
-
-        # 1. Coluna combinada: "{Qtd total} ({Distribuição})"
-        df["qtd_distribuicao"] = (
-            df["quantidade_total"].astype(str) + " (" + df["por_bebe_ou_compartilhado"].astype(str) + ")"
-        )
+    if not df.empty:
+        # Coluna combinada: "{Qtd total} ({Distribuição})"
+        if "qtd_distribuicao" not in df.columns and "quantidade_total" in df.columns:
+            dist_col = df["por_bebe_ou_compartilhado"] if "por_bebe_ou_compartilhado" in df.columns else ""
+            df["qtd_distribuicao"] = (
+                df["quantidade_total"].astype(str) + " (" + dist_col.astype(str) + ")"
+            )
 
         # Cards de métricas
         m1, m2, m3, m4 = st.columns(4)
         total_itens = len(df)
-        essenciais = int((df["prioridade"] == "Essencial").sum())
-        total_pecas = int(df["quantidade_total"].sum())
-        num_categorias = int(df["categoria"].nunique())
+        essenciais = int((df["prioridade"] == "Essencial").sum()) if "prioridade" in df.columns else 0
+        total_pecas = int(pd.to_numeric(df["quantidade_total"], errors="coerce").fillna(0).sum()) if "quantidade_total" in df.columns else 0
+        num_categorias = int(df["categoria"].nunique()) if "categoria" in df.columns else 0
 
         m1.metric("Total de Itens", total_itens)
         m2.metric("Itens Essenciais", essenciais)
@@ -739,42 +809,8 @@ def render_enxoval_guide_page() -> None:
             height="content",
             width="stretch",
         )
-    elif os.path.exists(json_path):
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        df = pd.DataFrame(data)
-        df["qtd_distribuicao"] = (
-            df["quantidade_total"].astype(str) + " (" + df["por_bebe_ou_compartilhado"].astype(str) + ")"
-        )
-        priority_colors = {
-            "Essencial": "#c92a2a",
-            "Alta": "#d97706",
-            "Média": "#1971c2",
-            "Media": "#1971c2",
-            "Baixa": "#2f9e44",
-        }
-        styler = df.style.apply(
-            lambda row: [f"color: {priority_colors.get(str(row.get('prioridade', '')).strip(), '#212529')}; font-weight: 500;" for _ in row],
-            axis=1,
-        )
-        visible_cols = ["categoria", "item", "especificacao", "qtd_distribuicao", "dica_pratica"]
-        st.data_editor(
-            styler,
-            column_order=visible_cols,
-            column_config={
-                "categoria": st.column_config.TextColumn("Categoria", width="medium"),
-                "item": st.column_config.TextColumn("Item", width="large"),
-                "especificacao": st.column_config.TextColumn("Especificação", width="large"),
-                "qtd_distribuicao": st.column_config.TextColumn("Qtd Total (Distribuição)", width="medium"),
-                "dica_pratica": st.column_config.TextColumn("Dica Prática", width="large"),
-            },
-            hide_index=True,
-            disabled=True,
-            height="content",
-            width="stretch",
-        )
     else:
-        st.warning("Não foi possível carregar final.csv ou final.json.")
+        st.warning("Não foi possível carregar a tabela consolidada de itens.")
 
 
 # -----------------------------------------------------------------------------
