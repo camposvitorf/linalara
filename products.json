@@ -1,0 +1,47 @@
+[
+  {
+    "title": "Carrinho de bebê para gêmeos - exemplo",
+    "link": "https://www.amazon.com.br/Carrinho-para-Gemeos-Doppio-Grafite/dp/B0CD4D7LWT",
+    "image_url": "https://m.media-amazon.com/images/I/71nqlMwP+YL._AC_SL1500_.jpg",
+    "likes": 2,
+    "dislikes": 2,
+    "tenho": 1,
+    "qtd_necessaria": 1
+  },
+  {
+    "title": "Baba eletrônica com câmera noturna - exemplo",
+    "link": "https://produto.mercadolivre.com.br/MLB-6892873926-baba-eletrnica-com-cmera-noturna-sensor-tela-lcd-vb603-b50-_JM",
+    "image_url": "https://http2.mlstatic.com/D_NQ_NP_2X_960582-MLA53038066634_012024-F.webp",
+    "likes": 0,
+    "dislikes": 0,
+    "tenho": 0,
+    "qtd_necessaria": 1
+  },
+  {
+    "title": "Mercado Libre",
+    "link": "https://www.mercadolivre.com.br/up/MLBU1506854993",
+    "image_url": "",
+    "likes": 0,
+    "dislikes": 0,
+    "tenho": 0,
+    "qtd_necessaria": 1
+  },
+  {
+    "title": "Minhas listas",
+    "link": "https://www.mercadolivre.com.br/social/promoburn",
+    "image_url": "https://http2.mlstatic.com/D_Q_NP_901971-MLA99504283488_112025-AB{sanitized_title}.webp",
+    "likes": 0,
+    "dislikes": 0,
+    "tenho": 0,
+    "qtd_necessaria": 1
+  },
+  {
+    "title": "Mlb41422794",
+    "link": "https://www.mercadolivre.com.br/cmera-ip-wi-fi-yoosee-360-full-hd-espi-seguranca-bivolt-branca/p/MLB41422794",
+    "image_url": "",
+    "likes": 0,
+    "dislikes": 0,
+    "tenho": 0,
+    "qtd_necessaria": 1
+  }
+]
